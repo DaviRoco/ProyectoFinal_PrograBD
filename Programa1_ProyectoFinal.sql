@@ -1,5 +1,5 @@
 --USER DB STRUCTURE(drUSR)
-CREATE PROCEDURE USER_DB_STRUCTURE  IS
+PROCEDURE USER_DB_STRUCTURE  IS
     user_NAME          varchar2(20);
     table_space        varchar2(20);
     quota              number;
