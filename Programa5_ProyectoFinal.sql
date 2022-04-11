@@ -1,13 +1,15 @@
 --DATA SEARCH(drFIND)
 CREATE PROCEDURE DATA_SEARCH IS
+    DECLARE
+    drFIND                   varchar2(20) := 'BETA';
     cantidad_veces_repetidas NUMBER       := 0;
     tipo_data                varchar2(10) := &tipo;
-    input_USER                   varchar2(50) := &valor;
+    input_USER               varchar2(50) := &valor;
     col_rownum               varchar2(50);
     col_val                  varchar2(200);
     query_str                varchar2(200);
     TYPE cur_typ IS REF CURSOR;
-    encontrar_ROWNUM                       cur_typ;
+    encontrar_ROWNUM         cur_typ;
 BEGIN
     IF tipo_data = 'V' THEN
         tipo_data := 'VARCHAR2';
@@ -25,8 +27,9 @@ BEGIN
             SELECT column_name,
                    TABLE_NAME,
                    DATA_TYPE
-            FROM USER_TAB_COLS
-            WHERE DATA_TYPE = tipo_data;
+            FROM ALL_TAB_COLS
+            WHERE DATA_TYPE = tipo_data
+              AND OWNER = drFIND;
     BEGIN
         DBMS_OUTPUT.PUT_LINE('type(V/C/D/N): ' || tipo_data);
         DBMS_OUTPUT.PUT_LINE('value ' || input_USER);
@@ -39,10 +42,10 @@ BEGIN
         FOR i in info_USERCOLS
             LOOP
                 EXECUTE IMMEDIATE
-                        'SELECT COUNT(*) FROM ' || USER || '.' || i.table_name ||
+                        'SELECT COUNT(*) FROM ' || drFIND || '.' || i.table_name ||
                         ' WHERE ' || i.column_name || ' = :1'
                     INTO cantidad_veces_repetidas
-                    USING input_USER ;
+                    USING input_USER;
                 IF cantidad_veces_repetidas > 0 THEN
                     query_str := 'SELECT ROWNUM, ' || i.COLUMN_NAME || ' FROM ' || i.TABLE_NAME;
                     OPEN encontrar_ROWNUM FOR query_str;
@@ -61,7 +64,7 @@ BEGIN
     end;
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        DBMS_OUTPUT.PUT_LINE('Error en el programa');
+        DBMS_OUTPUT.PUT_LINE('ERROR EN EL PROGRAMA');
 end;
 
 
