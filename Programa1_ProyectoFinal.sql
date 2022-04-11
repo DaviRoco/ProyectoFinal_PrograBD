@@ -1,6 +1,6 @@
 --USER DB STRUCTURE(drUSR)
--- CREATE PROCEDURE USER_DB_STRUCTURE(drUSR varchar2) IS
-DECLARE
+CREATE PROCEDURE USER_DB_STRUCTURE(drUSR varchar2) IS
+    user_NAME          varchar2(20);
     table_space        varchar2(20);
     quota              number;
     cantidad_tablas    number := 0;
@@ -24,16 +24,13 @@ DECLARE
         FROM ALL_SYNONYMS
         WHERE OWNER = 'BETA';
 BEGIN
+    user_NAME := drUSR;
     SELECT TABLESPACE_NAME
     into table_space
     FROM ALL_TABLES
     WHERE OWNER = drUSR FETCH FIRST ROW ONLY;
---     BEGIN
---         SELECT MAX_BYTES INTO quota FROM DBA_TS_QUOTAS WHERE USERNAME = drUSR AND TABLESPACE_NAME = 'USERS';
---     EXCEPTION
---         WHEN NO_DATA_FOUND THEN
---             quota := 'unlimited';
---     end;
+    SELECT MAX_BYTES INTO quota FROM DBA_TS_QUOTAS WHERE USERNAME = 'BETA' AND TABLESPACE_NAME = 'USERS';
+
     FOR i in tables_Usuario
         LOOP
             cantidad_tablas := cantidad_tablas + 1;
@@ -50,9 +47,16 @@ BEGIN
         LOOP
             cantidad_synonyms := cantidad_synonyms + 1;
         end loop;
-    DBMS_OUTPUT.PUT_LINE('USER: ' || drUSR || '         TableSpace: ' || table_space ||
-                         '           Quota: ' ||
-                         quota);
+
+    IF (quota = -1) THEN
+        DBMS_OUTPUT.PUT_LINE('USER: ' || user_NAME || '         TableSpace: ' || table_space ||
+                             '           Quota: Unlimited');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('USER: ' || user_NAME || '         TableSpace: ' || table_space ||
+                             '           Quota: ' ||
+                             quota);
+    end if;
+
     DBMS_OUTPUT.PUT_LINE(' Tables: ' || cantidad_tablas || '   Views: ' || cantidad_views || '      Synonyms: ' ||
                          cantidad_synonyms ||
                          '      Sequences: ' || cantidad_sequences);
@@ -82,7 +86,7 @@ BEGIN
                                CASE NULLABLE
                                    WHEN 'N' THEN 'Not null'
                                    WHEN 'Y' THEN ' '
-                                   END                                         as nullable,
+                                   END                                          as nullable,
                                (SELECT cols.column_name
                                 FROM all_constraints cons,
                                      all_cons_columns cols
@@ -128,13 +132,10 @@ BEGIN
                 DBMS_OUTPUT.PUT_LINE(' ');
             end loop;
     end;
-    EXCEPTION WHEN NO_DATA_FOUND THEN
-    DBMS_OUTPUT.PUT_LINE('USUARIO NO TIENE SUFICIENTE INFORMACIÓN PARA HACER UN DESCRIBE DE LA ESTRUCTURA');
 end;
 
--- BEGIN
---     USER_DB_STRUCTURE('beta');
--- end;
---
--- SELECT *
--- FROM DBA_TS_QUOTAS;
+BEGIN
+    USER_DB_STRUCTURE('beta');
+end;
+
+SELECT  FROM ALL_USER where username = 'BETA';

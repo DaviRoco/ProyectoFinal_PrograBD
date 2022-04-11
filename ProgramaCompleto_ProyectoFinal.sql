@@ -1,8 +1,8 @@
 CREATE OR REPLACE PACKAGE drDB IS
     PROCEDURE USER_DB_STRUCTURE(drUSR varchar2);
-    PROCEDURE RELATIONAL_INFO;
-    PROCEDURE DATA_LOAD;
-    PROCEDURE DATA_DICTIONARY;
+    PROCEDURE RELATIONAL_INFO(drFKS varchar2);
+    PROCEDURE DATA_LOAD(drLOAD varchar2, fileName varchar2);
+    PROCEDURE DATA_DICTIONARY(drDATA varchar2);
     PROCEDURE DATA_SEARCH(drFIND varchar2);
 END drDB;
 CREATE OR REPLACE PACKAGE BODY drDB IS
@@ -35,12 +35,17 @@ CREATE OR REPLACE PACKAGE BODY drDB IS
         into table_space
         FROM ALL_TABLES
         WHERE OWNER = drUSR FETCH FIRST ROW ONLY;
-        --     BEGIN
---         SELECT MAX_BYTES INTO quota FROM DBA_TS_QUOTAS WHERE USERNAME = drUSR AND TABLESPACE_NAME = 'USERS';
---     EXCEPTION
---         WHEN NO_DATA_FOUND THEN
---             quota := 'unlimited';
---     end;
+        BEGIN
+            SELECT MAX_BYTES INTO quota FROM DBA_TS_QUOTAS WHERE USERNAME = drUSR AND TABLESPACE_NAME = table_space;
+            IF (quota = -1) THEN
+                DBMS_OUTPUT.PUT_LINE('USER: ' || drUSR || '         TableSpace: ' || table_space ||
+                                     '           Quota: Unlimited');
+            ELSE
+                DBMS_OUTPUT.PUT_LINE('USER: ' || drUSR || '         TableSpace: ' || table_space ||
+                                     '           Quota: ' ||
+                                     quota);
+            end if;
+        end;
         FOR i in tables_Usuario
             LOOP
                 cantidad_tablas := cantidad_tablas + 1;
@@ -57,9 +62,6 @@ CREATE OR REPLACE PACKAGE BODY drDB IS
             LOOP
                 cantidad_synonyms := cantidad_synonyms + 1;
             end loop;
-        DBMS_OUTPUT.PUT_LINE('USER: ' || drUSR || '         TableSpace: ' || table_space ||
-                             '           Quota: ' ||
-                             quota);
         DBMS_OUTPUT.PUT_LINE(' Tables: ' || cantidad_tablas || '   Views: ' || cantidad_views || '      Synonyms: ' ||
                              cantidad_synonyms ||
                              '      Sequences: ' || cantidad_sequences);
@@ -139,7 +141,6 @@ CREATE OR REPLACE PACKAGE BODY drDB IS
         WHEN NO_DATA_FOUND THEN
             DBMS_OUTPUT.PUT_LINE('USUARIO NO TIENE SUFICIENTE INFORMACIÓN PARA HACER UN DESCRIBE DE LA ESTRUCTURA');
     end USER_DB_STRUCTURE;
-
 --2. RELATIONAL INFO
     PROCEDURE RELATIONAL_INFO(drFKS varchar2) IS
         CURSOR c_tables IS
@@ -196,10 +197,8 @@ CREATE OR REPLACE PACKAGE BODY drDB IS
             end loop;
 
     end RELATIONAL_INFO;
-
 --3. DATA LOAD
-    PROCEDURE RELATIONAL_INFO(drLOAD varchar2, fileName varchar2) IS
-    DECLARE
+    PROCEDURE DATA_LOAD(drLOAD varchar2, fileName varchar2) IS
         createDDL VARCHAR2(32767);
         fileDDL   UTL_FILE.FILE_TYPE;
         CURSOR c_createsTable IS
@@ -217,7 +216,7 @@ CREATE OR REPLACE PACKAGE BODY drDB IS
                 UTL_FILE.PUT(fileDDL, createDDL);
             end loop;
         UTL_FILE.FCLOSE(fileDDL);
-    END RELATIONAL_INFO;
+    END DATA_LOAD;
 
 --4. DATA DICTIONARY
     PROCEDURE DATA_DICTIONARY(drDATA varchar2) IS
