@@ -1,5 +1,4 @@
 --DATA SEARCH(drFIND)
-CREATE PROCEDURE DATA_SEARCH IS
     DECLARE
     drFIND                   varchar2(20) := 'BETA';
     cantidad_veces_repetidas NUMBER       := 0;

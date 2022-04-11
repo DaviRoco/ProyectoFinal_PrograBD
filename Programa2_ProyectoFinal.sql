@@ -1,10 +1,11 @@
-CREATE PROCEDURE RELATIONAL_INFO(drFKS varchar2) IS
+--2. RELATIONAL INFO
+DECLARE
+    drFKS varchar2(50) := 'BETA';
     CURSOR c_tables IS
         SELECT table_name
         FROM ALL_TABLES
         WHERE owner = drFKS
         ORDER BY table_name;
-
 BEGIN
     FOR i IN c_tables
         LOOP
@@ -52,5 +53,4 @@ BEGIN
             end;
 
         end loop;
-
-end;
+end ;
