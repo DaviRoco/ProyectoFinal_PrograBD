@@ -200,6 +200,7 @@ CREATE OR REPLACE PACKAGE BODY drDB IS
 --3. DATA LOAD
     PROCEDURE DATA_LOAD(drLOAD varchar2, fileName varchar2) IS
         createDDL VARCHAR2(32767);
+        path      VARCHAR2(32767);
         fileDDL   UTL_FILE.FILE_TYPE;
         CURSOR c_createsTable IS
             select dbms_metadata.get_ddl('TABLE', table_name) data
@@ -216,6 +217,13 @@ CREATE OR REPLACE PACKAGE BODY drDB IS
                 UTL_FILE.PUT(fileDDL, createDDL);
             end loop;
         UTL_FILE.FCLOSE(fileDDL);
+        DBMS_OUTPUT.PUT_LINE(chr(10));
+        DBMS_OUTPUT.PUT_LINE('Puede encontrar el archivo DDL en la siguiente ruta de su computadora');
+        select DIRECTORY_PATH
+        INTO path
+        from ALL_DIRECTORIES
+        WHERE DIRECTORY_NAME = 'ORACLE_BASE';
+        DBMS_OUTPUT.PUT_LINE(path);
     END DATA_LOAD;
 
 --4. DATA DICTIONARY
